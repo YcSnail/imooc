@@ -46,7 +46,11 @@
 					var self = plus.webview.currentWebview();
 
 
-					var nview = plus.nativeObj.View.getViewById('tabBar'),
+					// 创建子webview窗口 并初始化
+					var aniShow = {};
+					util.initSubpage(aniShow);
+					
+					var 	nview = plus.nativeObj.View.getViewById('tabBar'),
 						activePage = plus.webview.currentWebview(),
 						targetPage,
 						subpages = util.options.subpages,
@@ -59,15 +63,14 @@
 					 */
 					nview.addEventListener('click', function(e) {
 						var clientX = e.clientX;
-						if(clientX > 0 && clientX <= parseInt(pageW * 0.25)) {
+						if(clientX > 0 && clientX <= parseInt(pageW * 0.33)) {
 							currIndex = 0;
-						} else if(clientX > parseInt(pageW * 0.25) && clientX <= parseInt(pageW * 0.45)) {
+						} else if(clientX > parseInt(pageW * 0.33) && clientX <= parseInt(pageW * 0.66)) {
 							currIndex = 1;
-						} else if(clientX > parseInt(pageW * 0.45) && clientX <= parseInt(pageW * 0.8)) {
-							currIndex = 2;
 						} else {
-							currIndex = 3;
+							currIndex = 2;
 						}
+						
 						// 匹配对应tab窗口	
 						if(currIndex > 0) {
 							targetPage = plus.webview.getWebviewById(subpages[currIndex - 1]);
@@ -86,7 +89,7 @@
 							util.changeSubpage(targetPage, activePage, aniShow);
 							//更新当前活跃的页面
 							activePage = targetPage;
-						}
+						} 
 					});
 				});
 			})();

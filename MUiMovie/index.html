@@ -1,98 +1,193 @@
 <!DOCTYPE html>
 <html>
 
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
-		<title>首页</title>
-		<script src="js/mui.min.js"></script>
-		<link href="css/mui.min.css" rel="stylesheet" />
-		<style>
-			html,
-			body {
-				background-color: #fff;
-			}
-			
-			.wrap-search {
-				margin: 15px;
-				background: #E6E6E6;
-				height: 30px;
-				border-radius: 5px;
-				text-align: center;
-			}
-			
-		</style>
-	</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>首页</title>
+    <script src="js/mui.min.js"></script>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <link href="css/style.css" rel="stylesheet"/>
+    <style>
+        html,
+        body {
+            background-color: #fff;
+        }
 
-	<body>
-		<div class="mui-content" style="background-color: #fff;">
-			<div class="wrap-search">
-				
-				<span  class="mui-icon mui-icon-search" style="line-height: 30px;color: #AAAAAA;font-size: 16px;"></span>
-				<span style="line-height: 30px;color: #AAAAAA;font-size: 14px;">电影/电视剧/影人</span>
-			</div>
-			
-		</div>
+        .wrap-search {
+            margin: 15px;
+            background: #E6E6E6;
+            height: 30px;
+            border-radius: 5px;
+            text-align: center;
+        }
 
-		<script src="js/util.js"></script>
-		<script type="text/javascript">
-			(function() {
-				mui.init({
-					swipeBack: true //启用右滑关闭功能
-				});
-				mui.plusReady(function() {
-					var self = plus.webview.currentWebview();
+        .item-img {
+            width: 60px;
+            height: 90px;
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="mui-content" style="background: white;">
+    <div class="wrap-search">
+        <span class="mui-icon mui-icon-search" style="line-height: 30px;color: #AAAAAA;font-size: 16px;"></span>
+        <span style="line-height: 30px;color: #AAAAAA;font-size: 14px;">电影/电视剧/影人</span>
+    </div>
+
+    <div id="refreshContainer" class="mui-scroll-wrapper" style="top: 50px;">
+        <div class="mui-scroll">
+            <ul id="movies" class="mui-table-view">
+                <li class="mui-table-view-cell" v-for="item in movies" @tap="open_detail(item)">
+                    <img class="mui-pull-left item-img" :src="item.cover" />
+                    <div class="mui-ellipsis dark-big">
+                        {{item.title}}
+                    </div>
+                    <div class="mui-ellipsis">
+                        <span class="gray-small">{{item.genres}}</span>&nbsp;
+                        <span v-if="item.score>0" class="orange-small">{{item.score}}分</span>
+                        <span v-else class="orange-small">暂无评分</span>
+                    </div>
+                    <div class="mui-ellipsis gray-small">
+                        导演：{{item.directors}}
+                    </div>
+                    <div class="mui-ellipsis gray-small">
+                        主演:
+                        <span v-if="item.casts != '' ">{{item.casts}}</span>
+                        <span v-else>无</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</div>
+<script src="js/util.js"></script>
+<script src="js/vue.min.js"></script>
+<script type="text/javascript">
+    (function () {
+
+        var data_movies = new Vue({
+            'el':'#movies',
+            data:{
+                movies:[]
+            }
+        });
+
+        mui.init({
+            swipeBack: true //启用右滑关闭功能
+        });
+
+        // 添加 搜索框点击事件
+        mui('.wrap-search')[0].addEventListener('tap', function () {
+            console.log('click....');
+        });
+
+        // 初始化滚动
+        mui('.mui-scrllo-wrapper').scroll({});
+
+        // 请求数据接口
+        mui.getJSON('http://api.douban.com/v2/movie/in_theaters','',function (resp) {
+
+            // 处理 数据
+            data_movies.movies = covert(resp.subjects);
+
+        });
 
 
-					// 创建子webview窗口 并初始化
-					var aniShow = {};
-					util.initSubpage(aniShow);
-					
-					var 	nview = plus.nativeObj.View.getViewById('tabBar'),
-						activePage = plus.webview.currentWebview(),
-						targetPage,
-						subpages = util.options.subpages,
-						pageW = window.innerWidth,
-						currIndex = 0;
-					
-						
-					/**
-					 * 根据判断view控件点击位置判断切换的tab
-					 */
-					nview.addEventListener('click', function(e) {
-						var clientX = e.clientX;
-						if(clientX > 0 && clientX <= parseInt(pageW * 0.33)) {
-							currIndex = 0;
-						} else if(clientX > parseInt(pageW * 0.33) && clientX <= parseInt(pageW * 0.66)) {
-							currIndex = 1;
-						} else {
-							currIndex = 2;
-						}
-						
-						// 匹配对应tab窗口	
-						if(currIndex > 0) {
-							targetPage = plus.webview.getWebviewById(subpages[currIndex - 1]);
-						} else {
-							targetPage = plus.webview.currentWebview();
-						}
+        // 转换数据
+        function covert(items) {
 
-						if(targetPage == activePage) {
-							return;
-						}
+            var newItems = [];
 
-					});
-				});
-				
-				// 添加 搜索框点击事件
-				mui('.wrap-search')[0].addEventListener('tap',function(){
-					
-					console.log('click....');
-					
-				})
-				
-				
-			})();
-		</script>
-	</body>
+            // 遍历数据
+            items.forEach(function (item) {
+                // 分割 风格类型
+                var genres = item.genres.toString().replace(/,/g,' / ');
+
+                // 导演
+                var directors = '';
+                for (var i=0;i<item.directors.length;i++){
+                    directors += item.directors[i].name;
+
+                    if (i != item.directors.length - 1){
+                        directors += ' / ';
+                    }
+                }
+
+                // 演员
+                var casts = '';
+                for (var i=0;i<item.casts.length;i++){
+                    casts += item.casts[i].name;
+
+                    if (i != item.casts.length - 1){
+                        casts += ' / ';
+                    }
+                }
+
+                newItems.push({
+                    id:item.id,
+                    title:item.title,
+                    genres:genres,
+                    cover:item.images.large,
+                    directors:directors,
+                    casts:casts
+                });
+
+            });
+            return newItems;
+        }
+
+
+
+        mui.plusReady(function () {
+            var self = plus.webview.currentWebview();
+            // 创建子webview窗口 并初始化
+            var aniShow = {};
+            util.initSubpage(aniShow);
+
+            var nview = plus.nativeObj.View.getViewById('tabBar'),
+                activePage = plus.webview.currentWebview(),
+                targetPage,
+                subpages = util.options.subpages,
+                pageW = window.innerWidth,
+                currIndex = 0;
+
+
+            /**
+             * 根据判断view控件点击位置判断切换的tab
+             */
+            nview.addEventListener('click', function (e) {
+                var clientX = e.clientX;
+                if (clientX > 0 && clientX <= parseInt(pageW * 0.33)) {
+                    currIndex = 0;
+                } else if (clientX > parseInt(pageW * 0.33) && clientX <= parseInt(pageW * 0.66)) {
+                    currIndex = 1;
+                } else {
+                    currIndex = 2;
+                }
+
+                // 匹配对应tab窗口
+                if (currIndex > 0) {
+                    targetPage = plus.webview.getWebviewById(subpages[currIndex - 1]);
+                } else {
+                    targetPage = plus.webview.currentWebview();
+                }
+
+                if (targetPage == activePage) {
+                    return;
+                }
+
+            });
+        });
+
+
+    })();
+</script>
+</body>
 
 </html>
